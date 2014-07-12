@@ -1,3 +1,8 @@
+/*#include <sys/types.h>
+#include <sys/stat.h>*/
+#include <stdlib.h>
+#include <stdio.h>
+
 #include "camera_info.h"
 #include "stdlib.h"
 #include "keyboard.h"
@@ -21,6 +26,7 @@
 
 #include "module_load.h"
 
+
 /*
     HISTORY:    1.1 - added tbox usage [CHDK 1.1.1 required]
 */
@@ -28,6 +34,14 @@
 int gui_fselect_kbd_process();
 void gui_fselect_kbd_process_menu_btn();
 void gui_fselect_draw(int enforce_redraw);
+long fputs(char *str, FILE *f);
+int manipulate_jpg(char* fname);
+
+long fputs(char *str, FILE *f)
+{
+	long len = strlen(str);
+	return fwrite(str, sizeof(char), len, f);
+}
 
 gui_handler GUI_MODE_FSELECT_MODULE =
     /*GUI_MODE_FSELECT*/    { GUI_MODE_FSELECT, gui_fselect_draw, gui_fselect_kbd_process, gui_fselect_kbd_process_menu_btn, 0 };
@@ -1350,7 +1364,12 @@ int gui_fselect_kbd_process()
                             exit_fselect(0);
                             do_exit = 0;
                     		module_run(selected_file);
-                        }
+                        } else if (chk_ext(ext, "jpg")) /* TODO case insensitive! */
+			{
+				exit_fselect(0);
+				do_exit = 0;
+				manipulate_jpg(selected_file);
+			}
                     }
 
                     if (do_exit)
@@ -1380,6 +1399,83 @@ void gui_fselect_kbd_process_menu_btn()
 {
     // just free resource. callback called with NULL ptr
     exit_fselect(0);
+}
+
+FILE* open_variant(char* fname, char* suffix)
+{
+    char *new_fname;
+    FILE *buf;
+    new_fname = malloc((strlen(fname) + strlen(suffix)) * sizeof(char));
+    sprintf(new_fname, "%s%s", fname, suffix);
+    buf = fopen(new_fname, "w");
+    free(new_fname);
+    return buf;
+}
+
+long long transform_jpg(void** new_content, void* content, long long len)
+{
+	long long new_len = 10;
+	*new_content = malloc(new_len * sizeof(char));
+	memcpy(content, *new_content, new_len * sizeof(char));
+	return new_len;
+}
+
+int manipulate_jpg(char* fname)
+{
+    FILE *buf, *log;
+    int buf_size;
+    char* content;
+    long long read_bytes;
+    void *new_content;
+    long long new_content_len;
+
+    log = open_variant(fname, ".log");
+
+    //get content
+    buf = fopen(fname, "r");
+    if(buf == NULL) {
+        fputs("error reading buf\n", log);
+        fclose(log);
+        return 1;
+    }
+    fseek(buf, 0L, SEEK_END);
+    buf_size = ftell(buf);
+    fseek(buf, 0L, SEEK_SET);
+    if(buf_size == 0) {
+        fputs("file empty", log);
+        fclose(log);
+        return 1;
+    }
+    content = malloc(buf_size * sizeof(char));
+    read_bytes = fread(content, sizeof(char), buf_size, buf);
+    if(read_bytes != buf_size) {
+        fputs("error reading\n", log);
+        //FIXME: we should just continue to read!
+        fclose(log);
+        free(content);
+        return 1;
+    }
+    fclose(buf);
+
+    fputs("OK, ready to manipulate!\n", log);
+
+    new_content_len = transform_jpg(&new_content, content, read_bytes);
+    free(content);
+    if(new_content_len == 0) {
+        fputs("Errors transforming\n", log);
+        fclose(log);
+        return 1;
+    }
+    free(new_content);
+
+    buf = open_variant(fname, ".man");
+    fwrite(new_content, 1, new_content_len, buf);
+    fclose(buf);
+    free(new_content);
+
+    fputs("Written bytes\n", log);
+    fclose(log);
+    return 0;
 }
 
 // =========  MODULE INIT =================
