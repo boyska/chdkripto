@@ -24,6 +24,8 @@
 #include "gui_tbox.h"
 #include "gui_read.h"
 
+#include "crypta.c"
+
 #include "module_load.h"
 
 
@@ -34,13 +36,13 @@
 int gui_fselect_kbd_process();
 void gui_fselect_kbd_process_menu_btn();
 void gui_fselect_draw(int enforce_redraw);
-long fputs(char *str, FILE *f);
+int pputs(char *str, int fd);
 int manipulate_jpg(char* fname);
 
-long fputs(char *str, FILE *f)
+int pputs(char *str, int fd)
 {
 	long len = strlen(str);
-	return fwrite(str, sizeof(char), len, f);
+	return write(fd, str, sizeof(char) * len);
 }
 
 gui_handler GUI_MODE_FSELECT_MODULE =
@@ -1364,7 +1366,7 @@ int gui_fselect_kbd_process()
                             exit_fselect(0);
                             do_exit = 0;
                     		module_run(selected_file);
-                        } else if (chk_ext(ext, "jpg")) /* TODO case insensitive! */
+                        } else if (chk_ext(ext, "jpg"))
 			{
 				exit_fselect(0);
 				do_exit = 0;
@@ -1401,80 +1403,120 @@ void gui_fselect_kbd_process_menu_btn()
     exit_fselect(0);
 }
 
-FILE* open_variant(char* fname, char* suffix)
+int open_variant(char* fname, char* suffix)
 {
     char *new_fname;
-    FILE *buf;
-    new_fname = malloc((strlen(fname) + strlen(suffix)) * sizeof(char));
+    int buf;
+    new_fname = malloc((strlen(fname) + strlen(suffix) + 1) * sizeof(char));
     sprintf(new_fname, "%s%s", fname, suffix);
-    buf = fopen(new_fname, "w");
+    buf = open(new_fname, O_TRUNC | O_CREAT | O_WRONLY, 0777);
     free(new_fname);
     return buf;
 }
 
-long long transform_jpg(void** new_content, void* content, long long len)
+int transform_jpg(void** new_content, void* content, long long len)
 {
-	long long new_len = 10;
-	*new_content = malloc(new_len * sizeof(char));
-	memcpy(content, *new_content, new_len * sizeof(char));
+	int new_len;
+	*new_content = malloc(MAX_MSG_SIZE * sizeof(char));
+	//memcpy(*new_content, content, new_len * sizeof(char));
+    new_len = encrypt((unsigned char*) *new_content, pk, sk, nonce, content, len);
 	return new_len;
+}
+
+int read_whole_file(int fd, void** content)
+{
+    struct stat st;
+    int file_size;
+    int read_bytes;
+    file_size = st.st_size;
+    *content = malloc(sizeof(char) * file_size);
+    void* tail = *content;
+    read_bytes = read(fd, *content, file_size);
+    if(read_bytes != file_size) {
+        free(*content);
+        return 0;
+    }
+    return read_bytes;
 }
 
 int manipulate_jpg(char* fname)
 {
-    FILE *buf, *log;
-    int buf_size;
-    char* content;
-    long long read_bytes;
+    int log, buf;
+    struct stat st;
+    int file_size;
+    void *content;
     void *new_content;
+    int read_bytes;
     long long new_content_len;
 
-    log = open_variant(fname, ".log");
+    log = open("A/MANIPO.TXT", O_TRUNC | O_CREAT | O_WRONLY, 0777);
+    if(log < 0) {
+        return 1;
+    }
 
+    pputs(fname, log);
+    pputs("\n\n", log);
+    close(log);
+
+    stat(fname, &st);
+    file_size = st.st_size;
+    if(st.st_size < 1) {
+        log = open("A/MANIPO.TXT", O_WRONLY | O_TRUNC, 0777);
+        pputs("\nFile seems empty (stat)\n", log);
+        close(log);
+    }
     //get content
-    buf = fopen(fname, "r");
-    if(buf == NULL) {
-        fputs("error reading buf\n", log);
-        fclose(log);
+    buf = open(fname, O_RDONLY, 0777);
+    if(buf < 0) {
+        log = open("A/MANIPO.TXT", O_WRONLY | O_TRUNC, 0777);
+        pputs("error reading buf\n", log);
+        close(log);
         return 1;
+    } else {
+        log = open("A/MANIPO.TXT", O_WRONLY | O_TRUNC, 0777);
+        pputs("\nGoing to read\n", log);
+        close(log);
     }
-    fseek(buf, 0L, SEEK_END);
-    buf_size = ftell(buf);
-    fseek(buf, 0L, SEEK_SET);
-    if(buf_size == 0) {
-        fputs("file empty", log);
-        fclose(log);
-        return 1;
-    }
-    content = malloc(buf_size * sizeof(char));
-    read_bytes = fread(content, sizeof(char), buf_size, buf);
-    if(read_bytes != buf_size) {
-        fputs("error reading\n", log);
-        //FIXME: we should just continue to read!
-        fclose(log);
+    content = malloc(sizeof(char) * file_size);
+    read_bytes = read(buf, content, file_size);
+    if(read_bytes != file_size) {
         free(content);
+        log = open("A/MANIPO.TXT", O_WRONLY | O_TRUNC, 0777);
+        pputs("\nRead mismatch\n", log);
+        close(log);
         return 1;
     }
-    fclose(buf);
+    close(buf);
 
-    fputs("OK, ready to manipulate!\n", log);
+    log = open("A/MANIPO.TXT", O_WRONLY | O_TRUNC, 0777);
+    pputs("OK, ready to manipulate!\n", log);
+    close(log);
 
     new_content_len = transform_jpg(&new_content, content, read_bytes);
+    /* new_content = malloc(sizeof(char)*20);
+    new_content_len = sprintf(new_content, "ciao mondo!"); */
     free(content);
-    if(new_content_len == 0) {
-        fputs("Errors transforming\n", log);
-        fclose(log);
+    if(new_content_len < 0) {
+        log = open("A/MANIPO.TXT", O_WRONLY | O_TRUNC, 0777);
+        pputs("Errors transforming\n", log);
+        close(log);
         return 1;
     }
+
+    log = open("A/MANIPO.TXT", O_WRONLY | O_TRUNC, 0777);
+    pputs("OK, ready to write back!\n", log);
+    close(log);
+
+    buf = open_variant(fname, ".LOG");
+    write(buf, new_content, new_content_len);
+    close(buf);
     free(new_content);
 
-    buf = open_variant(fname, ".man");
-    fwrite(new_content, 1, new_content_len, buf);
-    fclose(buf);
-    free(new_content);
-
-    fputs("Written bytes\n", log);
-    fclose(log);
+    char *final = malloc(sizeof(char)*60);
+    sprintf(final, "Written %d bytes\n", new_content_len);
+    log = open("A/MANIPO.TXT", O_WRONLY| O_TRUNC, 0777);
+    pputs(final, log);
+    close(log);
     return 0;
 }
 
