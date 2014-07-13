@@ -41,7 +41,7 @@ all: $(FLTS)
 	$(topdir)/tools/elf2flt/elf2flt$(EXE) .o/$*.elf $@ -iexportlist.inc -!$(topdir)/tools/elf2flt/stoplist.txt > $(DEVNULL)
 
 tweetnacl.o: tweetnacl.c crypta.c tweetnacl.h
-	arm-elf-gcc  tweetnacl.c crypta.c -I ../include/ -c
+	$(CC)  tweetnacl.c crypta.c -I ../include/ -c
 
 nothumb.o: nothumb.c
 	@echo $< \-\> $@
