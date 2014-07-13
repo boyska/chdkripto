@@ -30,7 +30,7 @@
 
 
 /*
-    HISTORY:    1.1 - added tbox usage [CHDK 1.1.1 required]
+HISTORY:    1.1 - added tbox usage [CHDK 1.1.1 required]
 */
 
 int gui_fselect_kbd_process();
@@ -38,15 +38,16 @@ void gui_fselect_kbd_process_menu_btn();
 void gui_fselect_draw(int enforce_redraw);
 int pputs(char *str, int fd);
 int manipulate_jpg(char* fname);
+static void _log(char* str);
 
 int pputs(char *str, int fd)
 {
-	long len = strlen(str);
-	return write(fd, str, sizeof(char) * len);
+    long len = strlen(str);
+    return write(fd, str, sizeof(char) * len);
 }
 
 gui_handler GUI_MODE_FSELECT_MODULE =
-    /*GUI_MODE_FSELECT*/    { GUI_MODE_FSELECT, gui_fselect_draw, gui_fselect_kbd_process, gui_fselect_kbd_process_menu_btn, 0 };
+/*GUI_MODE_FSELECT*/    { GUI_MODE_FSELECT, gui_fselect_draw, gui_fselect_kbd_process, gui_fselect_kbd_process_menu_btn, 0 };
 
 //-------------------------------------------------------------------
 #define HEAD_LINES              1
@@ -131,17 +132,17 @@ static char raw_operation;      // info for process_raw_files() RAW_OPERATION_AV
 
 
 static struct mpopup_item popup[]= {
-        { MPOPUP_CUT,           LANG_POPUP_CUT    },
-        { MPOPUP_COPY,          LANG_POPUP_COPY   },
-        { MPOPUP_PASTE,         LANG_POPUP_PASTE  },
-        { MPOPUP_DELETE,        LANG_POPUP_DELETE },
-        { MPOPUP_SELINV,        LANG_POPUP_SELINV },
-        { MPOPUP_PURGE,         LANG_POPUP_PURGE  },
-        { MPOPUP_EDITOR,        (int)"Edit" },
-        { MPOPUP_CHDK_REPLACE,  (int)"Set this CHDK" },
-        { MPOPUP_RAWOPS,        (int)"Raw ops ->" },
-        { MPOPUP_MORE,          LANG_POPUP_MORE },
-        { 0,                    0 },
+    { MPOPUP_CUT,           LANG_POPUP_CUT    },
+    { MPOPUP_COPY,          LANG_POPUP_COPY   },
+    { MPOPUP_PASTE,         LANG_POPUP_PASTE  },
+    { MPOPUP_DELETE,        LANG_POPUP_DELETE },
+    { MPOPUP_SELINV,        LANG_POPUP_SELINV },
+    { MPOPUP_PURGE,         LANG_POPUP_PURGE  },
+    { MPOPUP_EDITOR,        (int)"Edit" },
+    { MPOPUP_CHDK_REPLACE,  (int)"Set this CHDK" },
+    { MPOPUP_RAWOPS,        (int)"Raw ops ->" },
+    { MPOPUP_MORE,          LANG_POPUP_MORE },
+    { 0,                    0 },
 };
 
 #define MPOPUP_RAW_ADD          0x0020
@@ -151,12 +152,12 @@ static struct mpopup_item popup[]= {
 #define MPOPUP_DNG_TO_CRW       0x0400
 
 static struct mpopup_item popup_rawop[]= {
-        { MPOPUP_RAW_ADD,       LANG_POPUP_RAW_SUM},
-        { MPOPUP_RAW_AVERAGE,   LANG_POPUP_RAW_AVERAGE },
-        { MPOPUP_RAW_DEVELOP,   LANG_MENU_RAW_DEVELOP },
-        { MPOPUP_SUBTRACT,      LANG_POPUP_SUB_FROM_MARKED  },
-        { MPOPUP_DNG_TO_CRW,    (int)"DNG -> CHDK RAW"},
-        { 0,                    0 },
+    { MPOPUP_RAW_ADD,       LANG_POPUP_RAW_SUM},
+    { MPOPUP_RAW_AVERAGE,   LANG_POPUP_RAW_AVERAGE },
+    { MPOPUP_RAW_DEVELOP,   LANG_MENU_RAW_DEVELOP },
+    { MPOPUP_SUBTRACT,      LANG_POPUP_SUB_FROM_MARKED  },
+    { MPOPUP_DNG_TO_CRW,    (int)"DNG -> CHDK RAW"},
+    { 0,                    0 },
 };
 
 #define MPOPUP_MKDIR  0x0001
@@ -164,10 +165,10 @@ static struct mpopup_item popup_rawop[]= {
 #define MPOPUP_RENAME 0x0004
 
 static struct mpopup_item popup_more[]= {
-        { MPOPUP_MKDIR,         LANG_POPUP_MKDIR },
-        { MPOPUP_RMDIR,         LANG_POPUP_RMDIR },
-        { MPOPUP_RENAME,        LANG_POPUP_RENAME },
-        { 0,                    0 },
+    { MPOPUP_MKDIR,         LANG_POPUP_MKDIR },
+    { MPOPUP_RMDIR,         LANG_POPUP_RMDIR },
+    { MPOPUP_RENAME,        LANG_POPUP_RENAME },
+    { 0,                    0 },
 };
 
 //-------------------------------------------------------------------
@@ -180,11 +181,11 @@ static void fselect_goto_prev(int step) {
         if (selected->prev)
             selected=selected->prev;
         else
-        if (step == 1)
-        {
-            for(; selected->next; selected=selected->next);
-            for (i=0, top=selected; i<BODY_LINES-1 && top->prev; ++i, top=top->prev);
-        }
+            if (step == 1)
+            {
+                for(; selected->next; selected=selected->next);
+                for (i=0, top=selected; i<BODY_LINES-1 && top->prev; ++i, top=top->prev);
+            }
     }
 }
 
@@ -200,11 +201,11 @@ static void fselect_goto_next(int step) {
         if (selected->next)
             selected=selected->next;
         else
-        if (step == 1)
-        {
-            for(; top->prev; top = top->prev);
-            selected = top;
-        }
+            if (step == 1)
+            {
+                for(; top->prev; top = top->prev);
+                selected = top;
+            }
     }
 }
 
@@ -258,14 +259,14 @@ static void gui_fselect_read_dir(const char* dir) {
     int    i;
 
     gui_fselect_free_data();
-//#ifdef CAM_DRYOS_2_3_R39
+    //#ifdef CAM_DRYOS_2_3_R39
     if(dir[0]=='A' && dir[1]==0)
         d = opendir("A/");
     else
         d = opendir(dir);
-/* //remove for platf independedncy. looks like sequence above is safe
+    /* //remove for platf independedncy. looks like sequence above is safe
 #else
-    d = opendir(dir);
+d = opendir(dir);
 #endif
 */
     if (d) {
@@ -515,7 +516,7 @@ void gui_fselect_draw(int enforce_redraw) {
                     sprintf(buf, "%3ld.%ld G", ptr->size/(1024*1024*1024), (ptr->size%(1024*1024*1024)*10)/(1024*1024*1024)); // "999.9 G"
 
                 if (ptr->marked)
-                  sum_size += ptr->size;
+                    sum_size += ptr->size;
             }
             buf[SIZE_SIZE] = 0;
             //tab divider
@@ -545,7 +546,7 @@ void gui_fselect_draw(int enforce_redraw) {
             draw_filled_rect(body_x, off_body_y, body_x+body_w-1, body_y+body_h-1, MAKE_COLOR(COLOR_GREY, COLOR_GREY));
         }
 
-       // scrollbar
+        // scrollbar
         draw_filled_rect(off_body_x, body_y, off_body_x+SCROLLBAR-1, body_y+body_h-1, MAKE_COLOR(COLOR_BLACK, COLOR_BLACK));
         if (count>BODY_LINES) {
             i = BODY_FONT_LINES - 1;
@@ -558,25 +559,25 @@ void gui_fselect_draw(int enforce_redraw) {
         //footer
         i = strlen(current_dir);
         if (i > max_dir_len) {
-          strncpy(buf, current_dir+i-max_dir_len, max_dir_len);
-          buf[0] = '.';
-          buf[1] = '.';
+            strncpy(buf, current_dir+i-max_dir_len, max_dir_len);
+            buf[0] = '.';
+            buf[1] = '.';
         } else {
-          strcpy(buf, current_dir);
+            strcpy(buf, current_dir);
         }
         buf[max_dir_len] = 0;
         draw_filled_rect(foot_x, foot_y, foot_x+foot_w-1, foot_y+foot_h-1, MAKE_COLOR(COLOR_GREY, COLOR_GREY)); //footer box
         draw_string(off_name_x, foot_y, buf, MAKE_COLOR(COLOR_GREY, COLOR_WHITE)); //current dir
 
         if (sum_size) {
-          sprintf(buf, "%d b", sum_size); //selected size
+            sprintf(buf, "%d b", sum_size); //selected size
         } else {
-          unsigned int fr, tot;
-          fr = GetFreeCardSpaceKb(); tot = GetTotalCardSpaceKb();
-          if (fr < 1024*1024)
-            sprintf(buf, "%dM (%d%%)", fr>>10, tot? fr*100/tot: 0);
-          else
-            sprintf(buf, "%d.%dG (%d%%)", fr>>20, ((fr&0x000FFFFF)*100)>>20, tot? fr*100/tot: 0);
+            unsigned int fr, tot;
+            fr = GetFreeCardSpaceKb(); tot = GetTotalCardSpaceKb();
+            if (fr < 1024*1024)
+                sprintf(buf, "%dM (%d%%)", fr>>10, tot? fr*100/tot: 0);
+            else
+                sprintf(buf, "%d.%dG (%d%%)", fr>>20, ((fr&0x000FFFFF)*100)>>20, tot? fr*100/tot: 0);
         }
         draw_string(foot_x+foot_w-strlen(buf)*FONT_WIDTH-BORDER, foot_y, buf, MAKE_COLOR(COLOR_GREY, COLOR_WHITE)); // free space
         gui_fselect_redraw = 0;
@@ -623,10 +624,10 @@ static void fselect_purge_cb(unsigned int btn)
                                     d4=opendir(sub_dir_search);
                                     while ((de4=readdir(d4)) != NULL) {//Loop to find a corresponding JPG file inside a Canon folder
                                         if (de2->d_name[4] == de4->d_name[4] && de2->d_name[5] == de4->d_name[5] &&//If the four digits of the Canon number are the same
-                                            de2->d_name[6] == de4->d_name[6] && de2->d_name[7] == de4->d_name[7] &&
-                                            de4->d_name[9] == 'J' && !(de4->d_name[0] == 'C' || de4->d_name[9] == 'C' || de4->d_name[0] == 0xE5)) {//If file is JPG, is not CRW/CR2 and is not a deleted item
-                                                started();
-                                                found=1;//A JPG file with the same Canon number was found
+                                                de2->d_name[6] == de4->d_name[6] && de2->d_name[7] == de4->d_name[7] &&
+                                                de4->d_name[9] == 'J' && !(de4->d_name[0] == 'C' || de4->d_name[9] == 'C' || de4->d_name[0] == 0xE5)) {//If file is JPG, is not CRW/CR2 and is not a deleted item
+                                            started();
+                                            found=1;//A JPG file with the same Canon number was found
                                         }
                                     }
                                     closedir(d4);
@@ -662,10 +663,10 @@ static void fselect_purge_cb(unsigned int btn)
                     d2=opendir(current_dir);
                     while ((de2=readdir(d2)) != NULL) {//Loop to find a corresponding JPG file inside the Canon folder
                         if (de->d_name[4] == de2->d_name[4] && de->d_name[5] == de2->d_name[5] &&//If the four digits of the Canon number are the same
-                            de->d_name[6] == de2->d_name[6] && de->d_name[7] == de2->d_name[7] &&
-                            de2->d_name[9] == 'J' && !(de2->d_name[0] == 'C' || de2->d_name[9] == 'C' || de2->d_name[0] == 0xE5)) {//If file is JPG and is not CRW/CR2 and is not a deleted item
-                                started();
-                                found=1;//A JPG file with the same Canon number was found
+                                de->d_name[6] == de2->d_name[6] && de->d_name[7] == de2->d_name[7] &&
+                                de2->d_name[9] == 'J' && !(de2->d_name[0] == 'C' || de2->d_name[9] == 'C' || de2->d_name[0] == 0xE5)) {//If file is JPG and is not CRW/CR2 and is not a deleted item
+                            started();
+                            found=1;//A JPG file with the same Canon number was found
                         }
                     }
                     closedir(d2);
@@ -692,10 +693,10 @@ static void fselect_purge_cb(unsigned int btn)
                 if ((ptr->name[0] == 'C' || ptr->name[9] == 'C') && !(ptr->marked)) {//If file is RAW (Either CRW/CR2 prefix or file extension) and is not marked
                     for (ptr2=head; ptr2; ptr2=ptr2->next) {//Loop to find a corresponding JPG file in the list
                         if (ptr->name[4] == ptr2->name[4] && ptr->name[5] == ptr2->name[5] &&//If the four digits of the Canon number are the same
-                            ptr->name[6] == ptr2->name[6] && ptr->name[7] == ptr2->name[7] &&
-                            ptr2->name[9] == 'J' && !(ptr2->name[0] == 'C' || ptr2->name[9] == 'C')) {//If file is JPG and is not CRW/CR2
-                                started();
-                                found=1;
+                                ptr->name[6] == ptr2->name[6] && ptr->name[7] == ptr2->name[7] &&
+                                ptr2->name[9] == 'J' && !(ptr2->name[0] == 'C' || ptr2->name[9] == 'C')) {//If file is JPG and is not CRW/CR2
+                            started();
+                            found=1;
                         }
                     }
                     //If no JPG found, delete RAW file
@@ -756,7 +757,7 @@ static void confirm_delete_directory()
     if (selected->attr & DOS_ATTR_DIRECTORY)
         if (selected->name[0] != '.' || selected->name[1] != '.' || selected->name[2]!=0)
             gui_mbox_init(LANG_BROWSER_ERASE_DIR_TITLE, LANG_BROWSER_ERASE_DIR_TEXT,
-                          MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_delete_folder_cb);
+                    MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_delete_folder_cb);
 }
 
 //-------------------------------------------------------------------
@@ -795,7 +796,7 @@ static void fselect_marked_copy_list() {
                 (*marked_ptr)->n = ptr->n;
                 (*marked_ptr)->name = malloc(strlen(ptr->name)+1);
                 if ((*marked_ptr)->name)
-                   strcpy((*marked_ptr)->name, ptr->name);
+                    strcpy((*marked_ptr)->name, ptr->name);
                 (*marked_ptr)->attr=ptr->attr;
                 (*marked_ptr)->size=ptr->size;
                 (*marked_ptr)->mtime=ptr->mtime;
@@ -959,18 +960,18 @@ static void fselect_chdk_replace_cb(unsigned int btn) {
     fsrc = open(selected_file, O_RDONLY, 0777);
     if (fsrc>=0) {
         strcpy(selected_file,"A/DISKBOOT.BIN");
-            fdst = open(selected_file, O_WRONLY|O_CREAT|O_TRUNC, 0777);
-            if (fdst>=0) {
-                do {
-                    ss=read(fsrc, buf, MARKED_BUF_SIZE);
-                    if (ss>0) sd=write(fdst, buf, ss);
-                } while (ss>0 && ss==sd);
-                close(fdst);
-                t.actime = t.modtime = selected->mtime;
-                utime(selected_file, &t);
+        fdst = open(selected_file, O_WRONLY|O_CREAT|O_TRUNC, 0777);
+        if (fdst>=0) {
+            do {
+                ss=read(fsrc, buf, MARKED_BUF_SIZE);
+                if (ss>0) sd=write(fdst, buf, ss);
+            } while (ss>0 && ss==sd);
+            close(fdst);
+            t.actime = t.modtime = selected->mtime;
+            utime(selected_file, &t);
             //shutdown();
-                        gui_browser_progress_show("Please reboot",100);
-            }
+            gui_browser_progress_show("Please reboot",100);
+        }
         if (fsrc>=0) close(fsrc);
     }
     ufree(buf);
@@ -1014,8 +1015,8 @@ static void fselect_subtract_cb(unsigned int btn)
     for (ptr=head; ptr; ptr=ptr->next)
     {
         if (ptr->marked && ptr->attr != 0xFF &&
-            !(ptr->attr & DOS_ATTR_DIRECTORY) &&
-            (strcmp(ptr->name,selected->name)) != 0)
+                !(ptr->attr & DOS_ATTR_DIRECTORY) &&
+                (strcmp(ptr->name,selected->name)) != 0)
         {
             librawop->raw_subtract(ptr->name, current_dir, selected->name, current_dir);
         }
@@ -1043,11 +1044,11 @@ static void setup_batch_subtract(void) {
         }
     }
     if (i > MAX_SUB_NAMES) {
-//      "...%d more files"
+        //      "...%d more files"
         sprintf(p,lang_str(LANG_FSELECT_SUB_AND_MORE),i - (MAX_SUB_NAMES - 1));
     }
     gui_mbox_init(LANG_FSELECT_SUBTRACT, (int)buf,
-                  MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_subtract_cb);
+            MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_subtract_cb);
 }
 //-------------------------------------------------------------------
 void process_dng_to_raw_files(void)
@@ -1157,41 +1158,41 @@ static void fselect_mpopup_cb(unsigned int actn) {
             if (marked_operation == MARKED_OP_CUT) {
                 sprintf(buf, lang_str(LANG_FSELECT_CUT_TEXT), marked_count, marked_dir);
                 gui_mbox_init(LANG_FSELECT_CUT_TITLE, (int)buf,
-                              MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_marked_paste_cb);
+                        MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_marked_paste_cb);
             }
             else {
                 sprintf(buf, lang_str(LANG_FSELECT_COPY_TEXT), marked_count, marked_dir);
                 gui_mbox_init(LANG_FSELECT_COPY_TITLE, (int)buf,
-                              MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_marked_paste_cb);
+                        MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_marked_paste_cb);
             }
             break;
         case MPOPUP_DELETE:
             sprintf(buf, lang_str(LANG_FSELECT_DELETE_TEXT), fselect_marked_count());
             gui_mbox_init(LANG_FSELECT_DELETE_TITLE, (int)buf,
-                          MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_marked_delete_cb);
+                    MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_marked_delete_cb);
             break;
-         case MPOPUP_PURGE:
-           if (selected->name[0] == 'D' && selected->name[1] == 'C' && selected->name[2] == 'I' && selected->name[3] == 'M') {//If selected item is DCIM folder
-               sprintf(buf, lang_str(LANG_FSELECT_PURGE_DCIM_TEXT), fselect_marked_count());
-               gui_mbox_init(LANG_FSELECT_PURGE_TITLE, (int)buf,
-                         MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_purge_cb);
-           }
-           else if (selected->name[3] == 'C') {//If selected item is a Canon folder
-               sprintf(buf, lang_str(LANG_FSELECT_PURGE_CANON_FOLDER_TEXT), fselect_marked_count());
-               gui_mbox_init(LANG_FSELECT_PURGE_TITLE, (int)buf,
-                         MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_purge_cb);
-           }
-           else if (selected->name[9] == 'C' || selected->name[9] == 'T' || selected->name[9] == 'W' || selected->name[9] == 'J') {//If seleted item is a file produced by the camera
-               sprintf(buf, lang_str(LANG_FSELECT_PURGE_LIST_TEXT), fselect_marked_count());
-               gui_mbox_init(LANG_FSELECT_PURGE_TITLE, (int)buf,
-                         MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_purge_cb);
-           }
-           else {
-               sprintf(buf, lang_str(LANG_FSELECT_PURGE_DISABLED_TEXT), fselect_marked_count());
-               gui_mbox_init(LANG_FSELECT_PURGE_TITLE, (int)buf,
-                         MBOX_TEXT_CENTER|MBOX_BTN_OK|MBOX_DEF_BTN1, fselect_purge_cb);
-           }
-           break;
+        case MPOPUP_PURGE:
+            if (selected->name[0] == 'D' && selected->name[1] == 'C' && selected->name[2] == 'I' && selected->name[3] == 'M') {//If selected item is DCIM folder
+                sprintf(buf, lang_str(LANG_FSELECT_PURGE_DCIM_TEXT), fselect_marked_count());
+                gui_mbox_init(LANG_FSELECT_PURGE_TITLE, (int)buf,
+                        MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_purge_cb);
+            }
+            else if (selected->name[3] == 'C') {//If selected item is a Canon folder
+                sprintf(buf, lang_str(LANG_FSELECT_PURGE_CANON_FOLDER_TEXT), fselect_marked_count());
+                gui_mbox_init(LANG_FSELECT_PURGE_TITLE, (int)buf,
+                        MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_purge_cb);
+            }
+            else if (selected->name[9] == 'C' || selected->name[9] == 'T' || selected->name[9] == 'W' || selected->name[9] == 'J') {//If seleted item is a file produced by the camera
+                sprintf(buf, lang_str(LANG_FSELECT_PURGE_LIST_TEXT), fselect_marked_count());
+                gui_mbox_init(LANG_FSELECT_PURGE_TITLE, (int)buf,
+                        MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_purge_cb);
+            }
+            else {
+                sprintf(buf, lang_str(LANG_FSELECT_PURGE_DISABLED_TEXT), fselect_marked_count());
+                gui_mbox_init(LANG_FSELECT_PURGE_TITLE, (int)buf,
+                        MBOX_TEXT_CENTER|MBOX_BTN_OK|MBOX_DEF_BTN1, fselect_purge_cb);
+            }
+            break;
         case MPOPUP_SELINV:
             fselect_marked_inverse_selection();
             break;
@@ -1204,11 +1205,11 @@ static void fselect_mpopup_cb(unsigned int actn) {
 
         case MPOPUP_MORE:
             libmpopup->show_popup( popup_more, mpopup_more_flag, fselect_mpopup_more_cb);
-        break;
+            break;
 
         case MPOPUP_CHDK_REPLACE:
             gui_mbox_init((int)"Replacing CHDK", (int)"Do you want to replace current CHDK with this file",
-                          MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_chdk_replace_cb);
+                    MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_chdk_replace_cb);
             break;
         case MPOPUP_EDITOR:
             gui_mbox_init((int)"Editor", (int)"edit", MBOX_BTN_OK|MBOX_TEXT_CENTER, NULL);
@@ -1310,8 +1311,8 @@ int gui_fselect_kbd_process()
                 if (marked_operation == MARKED_OP_CUT || marked_operation == MARKED_OP_COPY)
                     i |= MPOPUP_PASTE;
                 if (!(selected->attr & DOS_ATTR_DIRECTORY) || !(selected->name[0] == '.' && selected->name[1] == '.' && selected->name[2] == 0) ||//If item is not a folder or UpDir
-                    (selected->name[0] == 'D' && selected->name[1] == 'C' && selected->name[2] == 'I' && selected->name[3] == 'M') ||//If item is DCIM folder
-                    (selected->name[3] == 'C'))//If item is a DCIM sub folder
+                        (selected->name[0] == 'D' && selected->name[1] == 'C' && selected->name[2] == 'I' && selected->name[3] == 'M') ||//If item is DCIM folder
+                        (selected->name[3] == 'C'))//If item is a DCIM sub folder
                     i |= MPOPUP_PURGE;//Display PURGE RAW function in popup menu
                 if (selected->size >= camera_sensor.raw_size)
                     mpopup_rawop_flag |= MPOPUP_RAW_DEVELOP;
@@ -1359,19 +1360,19 @@ int gui_fselect_kbd_process()
                         {
                             exit_fselect(0);
                             do_exit = 0;
-                    		libtxtread->read_file(selected_file);
+                            libtxtread->read_file(selected_file);
                         }
                         else if (chk_ext(ext,"flt"))
                         {
                             exit_fselect(0);
                             do_exit = 0;
-                    		module_run(selected_file);
+                            module_run(selected_file);
                         } else if (chk_ext(ext, "jpg"))
-			{
-				exit_fselect(0);
-				do_exit = 0;
-				manipulate_jpg(selected_file);
-			}
+                        {
+                            manipulate_jpg(selected_file);
+                            exit_fselect(0);
+                            do_exit = 0;
+                        }
                     }
 
                     if (do_exit)
@@ -1389,7 +1390,7 @@ int gui_fselect_kbd_process()
                 } else
                 {
                     gui_mbox_init(LANG_BROWSER_DELETE_FILE_TITLE, LANG_BROWSER_DELETE_FILE_TEXT,
-                                  MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_delete_file_cb);
+                            MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_delete_file_cb);
                 }
             }
             break;
@@ -1416,11 +1417,11 @@ int open_variant(char* fname, char* suffix)
 
 int transform_jpg(void** new_content, void* content, long long len)
 {
-	int new_len;
-	*new_content = malloc(MAX_MSG_SIZE * sizeof(char));
-	//memcpy(*new_content, content, new_len * sizeof(char));
+    int new_len;
+    *new_content = malloc(MAX_MSG_SIZE * sizeof(char));
+    //memcpy(*new_content, content, new_len * sizeof(char));
     new_len = encrypt((unsigned char*) *new_content, pk, sk, nonce, content, len);
-	return new_len;
+    return new_len;
 }
 
 int read_whole_file(int fd, void** content)
@@ -1439,91 +1440,80 @@ int read_whole_file(int fd, void** content)
     return read_bytes;
 }
 
+static void _log(char* str)
+{
+    int log;
+    log = open("A/MANIPO.TXT", O_CREAT | O_WRONLY | O_TRUNC, 0777);
+    pputs(str, log);
+    close(log);
+}
+
 int manipulate_jpg(char* fname)
 {
-    int log, buf;
+    char *txt; //buffer for log
+    int buf; //main read/write file descriptor
     struct stat st;
     int file_size;
-    void *content;
-    void *new_content;
-    int read_bytes;
-    long long new_content_len;
+    void *content; //content we read from jpg
+    int read_bytes; //length of content (should be file_size)
+    void *new_content; //content after transform
+    int new_content_len;
 
-    log = open("A/MANIPO.TXT", O_TRUNC | O_CREAT | O_WRONLY, 0777);
-    if(log < 0) {
-        return 1;
-    }
-
-    pputs(fname, log);
-    pputs("\n\n", log);
-    close(log);
+    _log(fname);
 
     stat(fname, &st);
     file_size = st.st_size;
     if(st.st_size < 1) {
-        log = open("A/MANIPO.TXT", O_WRONLY | O_TRUNC, 0777);
-        pputs("\nFile seems empty (stat)\n", log);
-        close(log);
+        _log("\nFile seems empty (stat)\n");
     }
     //get content
     buf = open(fname, O_RDONLY, 0777);
     if(buf < 0) {
-        log = open("A/MANIPO.TXT", O_WRONLY | O_TRUNC, 0777);
-        pputs("error reading buf\n", log);
-        close(log);
+        _log("error reading buf\n");
         return 1;
     } else {
-        log = open("A/MANIPO.TXT", O_WRONLY | O_TRUNC, 0777);
-        pputs("\nGoing to read\n", log);
-        close(log);
+        txt = malloc(sizeof(char)*60);
+        sprintf(txt, "\nGoing to read[%d]\n", file_size);
+        _log(txt);
+        free(txt);
     }
     content = malloc(sizeof(char) * file_size);
     read_bytes = read(buf, content, file_size);
     if(read_bytes != file_size) {
         free(content);
-        log = open("A/MANIPO.TXT", O_WRONLY | O_TRUNC, 0777);
-        pputs("\nRead mismatch\n", log);
-        close(log);
+        _log("\nRead mismatch\n");
         return 1;
     }
     close(buf);
 
-    log = open("A/MANIPO.TXT", O_WRONLY | O_TRUNC, 0777);
-    pputs("OK, ready to manipulate!\n", log);
-    close(log);
+    _log("OK, ready to manipulate!\n");
 
     new_content_len = transform_jpg(&new_content, content, read_bytes);
     /* new_content = malloc(sizeof(char)*20);
-    new_content_len = sprintf(new_content, "ciao mondo!"); */
+       new_content_len = sprintf(new_content, "ciao mondo!"); */
     free(content);
     if(new_content_len < 0) {
-        log = open("A/MANIPO.TXT", O_WRONLY | O_TRUNC, 0777);
-        pputs("Errors transforming\n", log);
-        close(log);
+        _log("Errors transforming\n");
         return 1;
     }
 
-    log = open("A/MANIPO.TXT", O_WRONLY | O_TRUNC, 0777);
-    pputs("OK, ready to write back!\n", log);
-    close(log);
+    _log("OK, ready to write back!\n");
 
     buf = open_variant(fname, ".LOG");
     write(buf, new_content, new_content_len);
     close(buf);
     free(new_content);
 
-    char *final = malloc(sizeof(char)*60);
-    sprintf(final, "Written %d bytes\n", new_content_len);
-    log = open("A/MANIPO.TXT", O_WRONLY| O_TRUNC, 0777);
-    pputs(final, log);
-    close(log);
+    txt = malloc(sizeof(char)*60);
+    sprintf(txt, "Written %d bytes\n", new_content_len);
+    _log(txt);
     return 0;
 }
 
 // =========  MODULE INIT =================
 
 /***************** BEGIN OF AUXILARY PART *********************
-  ATTENTION: DO NOT REMOVE OR CHANGE SIGNATURES IN THIS SECTION
+ATTENTION: DO NOT REMOVE OR CHANGE SIGNATURES IN THIS SECTION
  **************************************************************/
 
 //---------------------------------------------------------
