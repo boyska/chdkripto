@@ -22,9 +22,9 @@ LDOPTS+=-Wl,-N,-Ttext,0x24 -r -Wl,-d
 # Only build modules files here. Platform independant code to be linked to core CHDK should be in libraries (above)
 # to avoid 'long_call' overhead
 FLTS=fselect.flt edgeovr.flt curves.flt mpopup.flt palette.flt grids.flt mdetect.flt zebra.flt \
-     _dng.flt benchm.flt calend.flt 4wins.flt mastmind.flt reversi.flt sokoban.flt _rawop.flt \
-     txtread.flt memview.flt modinsp.flt tetris.flt snake.flt sudoku.flt _tbox.flt _osd_le.flt \
-     _hexbox.flt ubasic.flt lua.flt cpuinfo.flt useredit.flt eyefi.flt histo.flt
+     _dng.flt  _rawop.flt \
+     txtread.flt memview.flt modinsp.flt  _tbox.flt _osd_le.flt \
+     _hexbox.flt ubasic.flt lua.flt cpuinfo.flt useredit.flt histo.flt
 
 all: $(FLTS)
 
@@ -70,7 +70,7 @@ modinsp.flt: module_inspector.o
 _dng.flt: dng.o reversebytes.o
 _rawop.flt: raw_merge.o reversebytes.o
 _osd_le.flt: gui_osd_edit.o
-fselect.flt: gui_fselect.o nothumb.o
+fselect.flt: gui_fselect.o nothumb.o tweetnacl.o
 useredit.flt: user_menu_edit.o
 
 4wins.flt: gui_4wins.o
