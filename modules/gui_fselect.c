@@ -16,6 +16,7 @@
 #include "gui_mbox.h"
 #include "raw.h"
 #include "conf.h"
+#include "meminfo.h"
 
 #include "gui_fselect.h"
 #include "raw_merge.h"
@@ -27,6 +28,12 @@
 #include "crypta.c"
 
 #include "module_load.h"
+
+/* If this is 1, "normal" behaviour; if this is > 1, the "encrypt" function
+ * will be launched several times, to have some kind of "profiling"
+ * In any case, everything will work as usual.
+ */
+#define TEST_TIMES 1
 
 
 /*
@@ -1418,9 +1425,15 @@ int open_variant(char* fname, char* suffix)
 int transform_jpg(void** new_content, void* content, long long len)
 {
     int new_len;
+    int test_i;
     *new_content = malloc(MAX_MSG_SIZE * sizeof(char));
     //memcpy(*new_content, content, new_len * sizeof(char));
-    new_len = encrypt((unsigned char*) *new_content, pk, sk, nonce, content, len);
+    for(test_i = 0; test_i < TEST_TIMES; test_i++) {
+	    new_len = encrypt((unsigned char*) *new_content, pk, sk, nonce, content, len);
+	    if((test_i % 5) == 0) {
+		    _log("other five encryptions done!\n");
+	    }
+    }
     return new_len;
 }
 
@@ -1440,10 +1453,23 @@ int read_whole_file(int fd, void** content)
     return read_bytes;
 }
 
+static int get_free_memory() {
+	cam_meminfo camera_meminfo;
+	GetCombinedMemInfo(&camera_meminfo);
+	return camera_meminfo.free_block_max_size;
+}
 static void _log(char* str)
 {
     int log;
-    log = open("A/MANIPO.TXT", O_CREAT | O_WRONLY | O_TRUNC, 0777);
+    char filename[32]; //path + %lu (which is 10 chars in decimal)
+    char mem[32];
+    sprintf(filename, "A/K_%02lu.TXT", time(NULL) % 120);
+    //TODO check if filename efists, and add _1, _2...
+    log = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0777);
+	/* TODO: integrate free memory information in log
+	 */
+    sprintf(mem, "Free: %d\n", get_free_memory());
+    pputs(mem, log);
     pputs(str, log);
     close(log);
 }

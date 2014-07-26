@@ -21,10 +21,10 @@ LDOPTS+=-Wl,-N,-Ttext,0x24 -r -Wl,-d
 
 # Only build modules files here. Platform independant code to be linked to core CHDK should be in libraries (above)
 # to avoid 'long_call' overhead
-FLTS=fselect.flt edgeovr.flt curves.flt mpopup.flt palette.flt grids.flt mdetect.flt zebra.flt \
+FLTS=fselect.flt edgeovr.flt curves.flt mpopup.flt palette.flt grids.flt mdetect.flt \
      _dng.flt  _rawop.flt \
      txtread.flt memview.flt modinsp.flt  _tbox.flt _osd_le.flt \
-     _hexbox.flt ubasic.flt lua.flt cpuinfo.flt useredit.flt histo.flt
+     _hexbox.flt cpuinfo.flt useredit.flt
 
 all: $(FLTS)
 

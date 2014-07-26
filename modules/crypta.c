@@ -72,14 +72,14 @@ int is_zero( const unsigned char *data, int len )
 	return rc;
 }
 
-#define MAX_MSG_SIZE 1400
+#define MAX_MSG_SIZE 102400
 
 int encrypt(unsigned char encrypted[], const unsigned char pk[],
 		const unsigned char sk[], const unsigned char nonce[],
 		const unsigned char plain[], int length) {
 	
-	unsigned char temp_plain[MAX_MSG_SIZE];
-	unsigned char temp_encrypted[MAX_MSG_SIZE];
+	unsigned char *temp_plain = malloc(MAX_MSG_SIZE);
+	unsigned char *temp_encrypted = malloc(MAX_MSG_SIZE);
 	int rc;
 
 	if(length+crypto_box_ZEROBYTES >= MAX_MSG_SIZE) {
@@ -92,14 +92,21 @@ int encrypt(unsigned char encrypted[], const unsigned char pk[],
 	rc = crypto_box(temp_encrypted, temp_plain, crypto_box_ZEROBYTES + length, nonce, pk, sk);
 
 	if( rc != 0 ) {
+		free(temp_plain);
+		free(temp_encrypted);
 		return -1;
 	}
 
 	if( is_zero(temp_plain, crypto_box_BOXZEROBYTES) != 0 ) {
+		free(temp_plain);
+		free(temp_encrypted);
 		return -3;
 	}
 
+	free(temp_plain);
+
 	memcpy(encrypted, temp_encrypted + crypto_box_BOXZEROBYTES, crypto_box_ZEROBYTES + length);
+	free(temp_encrypted);
 
 	return crypto_box_ZEROBYTES + length - crypto_box_BOXZEROBYTES;
 }
